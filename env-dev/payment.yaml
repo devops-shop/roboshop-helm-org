@@ -1,0 +1,18 @@
+env: dev
+appName: payment
+configMap_data:
+  CART_HOST: cart
+  CART_PORT: 8080
+  USER_HOST: user
+  USER_PORT: 8080
+  AMQP_HOST: rabbitmq-dev.mydevops.shop
+  AMQP_USER: roboshop
+  AMQP_PASS: roboshop123
+
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "50m"
+  limits:
+    memory: "128Mi"
+    cpu: "100m"

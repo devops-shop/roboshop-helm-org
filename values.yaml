@@ -1,0 +1,8 @@
+db_job:
+  enabled: false
+
+containerPort: 8080
+serviceType: ClusterIP
+
+minReplicas: 2
+maxReplicas: 10

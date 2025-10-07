@@ -90,6 +90,7 @@ resource "helm_release" "filebeat" {
   repository = "https://helm.elastic.co"
   chart      = "filebeat"
   namespace  = "devops"
+  create_namespace = true
   wait       = "false"
 
   values = [
@@ -105,6 +106,7 @@ resource "helm_release" "prometheus" {
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-prometheus-stack"
   namespace  = "devops"
+  create_namespace = true
   wait       = "false"
 
   values = [

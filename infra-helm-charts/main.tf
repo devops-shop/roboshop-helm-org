@@ -106,4 +106,8 @@ resource "helm_release" "prometheus" {
   chart      = "kube-prometheus-stack"
   namespace  = "devops"
   wait       = "false"
+
+  values = [
+    file("${path.module}/helm-values/prometheus.yml")
+  ]
 }

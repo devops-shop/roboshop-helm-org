@@ -15,6 +15,10 @@ resource "kubernetes_namespace" "devops" {
   metadata {
     name = "devops"
   }
+
+  lifecycle {
+    prevent_destroy = false
+  }
 }
 
 resource "helm_release" "external-secrets" {
@@ -115,14 +119,4 @@ resource "helm_release" "prometheus" {
   values = [
     file("${path.module}/helm-values/prometheus.yml")
   ]
-}
-
-resource "kubernetes_namespace" "devops" {
-  metadata {
-    name = "devops"
-  }
-
-  lifecycle {
-    prevent_destroy = false
-  }
 }

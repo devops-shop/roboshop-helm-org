@@ -11,35 +11,16 @@ EOF
   }
 }
 
-resource "kubernetes_namespace" "devops" {
-  metadata {
-    name = "devops"
-  }
-
-  lifecycle {
-    prevent_destroy = false
-  }
-}
-
-resource "kubernetes_namespace" "argocd" {
-  metadata {
-    name = "argocd"
-  }
-
-  lifecycle {
-    prevent_destroy = false
-  }
-}
-
 resource "helm_release" "external-secrets" {
   depends_on = [
-    null_resource.kubeconfig, kubernetes_namespace.devops
+    null_resource.kubeconfig
   ]
 
   name             = "external-secrets"
   repository       = "https://charts.external-secrets.io"
   chart            = "external-secrets"
   namespace        = "devops"
+  create_namespace = true
   set = [
     {
       name  = "installCRDs"
@@ -50,7 +31,7 @@ resource "helm_release" "external-secrets" {
 
 resource "null_resource" "external-secrets-secret-store" {
   depends_on = [
-    helm_release.external-secrets, kubernetes_namespace.devops
+    helm_release.external-secrets
   ]
   provisioner "local-exec" {
     command = <<TF
@@ -85,13 +66,14 @@ TF
 
 resource "helm_release" "argocd" {
   depends_on = [
-    null_resource.kubeconfig, kubernetes_namespace.argocd
+    null_resource.kubeconfig
   ]
 
   name             = "argo-cd"
   repository       = "https://argoproj.github.io/argo-helm"
   chart            = "argo-cd"
   namespace        = "argocd"
+  create_namespace = true
   set = [
     {
       name  = "server.service.type"
@@ -103,12 +85,13 @@ resource "helm_release" "argocd" {
 ## Filebeat Helm Chart
 resource "helm_release" "filebeat" {
 
-  depends_on       = [null_resource.kubeconfig, kubernetes_namespace.devops]
+  depends_on       = [null_resource.kubeconfig]
   name             = "filebeat"
   repository       = "https://helm.elastic.co"
   chart            = "filebeat"
   namespace        = "devops"
   wait             = "false"
+  create_namespace = true
 
   values = [
     file("${path.module}/helm-values/filebeat.yml")
@@ -118,11 +101,12 @@ resource "helm_release" "filebeat" {
 ## Prometheus Stack Helm Chart
 resource "helm_release" "prometheus" {
 
-  depends_on       = [null_resource.kubeconfig, kubernetes_namespace.devops]
+  depends_on       = [null_resource.kubeconfig]
   name             = "prom-stack"
   repository       = "https://prometheus-community.github.io/helm-charts"
   chart            = "kube-prometheus-stack"
   namespace        = "devops"
+  create_namespace = true
   wait             = "false"
 
   values = [

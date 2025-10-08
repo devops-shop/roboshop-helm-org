@@ -11,9 +11,15 @@ EOF
   }
 }
 
+resource "kubernetes_namespace" "devops" {
+  metadata {
+    name = "devops"
+  }
+}
+
 resource "helm_release" "external-secrets" {
   depends_on = [
-    null_resource.kubeconfig
+    null_resource.kubeconfig, kubernetes_namespace.devops
   ]
 
   name             = "external-secrets"
@@ -31,7 +37,7 @@ resource "helm_release" "external-secrets" {
 
 resource "null_resource" "external-secrets-secret-store" {
   depends_on = [
-    helm_release.external-secrets
+    helm_release.external-secrets, kubernetes_namespace.devops
   ]
   provisioner "local-exec" {
     command = <<TF
@@ -85,7 +91,7 @@ resource "helm_release" "argocd" {
 ## Filebeat Helm Chart
 resource "helm_release" "filebeat" {
 
-  depends_on       = [null_resource.kubeconfig]
+  depends_on       = [null_resource.kubeconfig, kubernetes_namespace.devops]
   name             = "filebeat"
   repository       = "https://helm.elastic.co"
   chart            = "filebeat"
@@ -101,7 +107,7 @@ resource "helm_release" "filebeat" {
 ## Prometheus Stack Helm Chart
 resource "helm_release" "prometheus" {
 
-  depends_on       = [null_resource.kubeconfig]
+  depends_on       = [null_resource.kubeconfig, kubernetes_namespace.devops]
   name             = "prom-stack"
   repository       = "https://prometheus-community.github.io/helm-charts"
   chart            = "kube-prometheus-stack"
@@ -112,4 +118,14 @@ resource "helm_release" "prometheus" {
   values = [
     file("${path.module}/helm-values/prometheus.yml")
   ]
+}
+
+resource "kubernetes_namespace" "devops" {
+  metadata {
+    name = "devops"
+  }
+
+  lifecycle {
+    prevent_destroy = false
+  }
 }

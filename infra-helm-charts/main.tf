@@ -21,6 +21,16 @@ resource "kubernetes_namespace" "devops" {
   }
 }
 
+resource "kubernetes_namespace" "argocd" {
+  metadata {
+    name = "argocd"
+  }
+
+  lifecycle {
+    prevent_destroy = false
+  }
+}
+
 resource "helm_release" "external-secrets" {
   depends_on = [
     null_resource.kubeconfig, kubernetes_namespace.devops
@@ -75,7 +85,7 @@ TF
 
 resource "helm_release" "argocd" {
   depends_on = [
-    null_resource.kubeconfig, kubernetes_namespace.devops
+    null_resource.kubeconfig, kubernetes_namespace.argocd
   ]
 
   name             = "argo-cd"

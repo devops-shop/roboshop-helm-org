@@ -99,7 +99,6 @@ resource "helm_release" "filebeat" {
   chart            = "filebeat"
   namespace        = "devops"
   wait             = "false"
-  create_namespace = true
 
   values = [
     file("${path.module}/helm-values/filebeat.yml")

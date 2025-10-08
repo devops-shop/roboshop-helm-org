@@ -85,13 +85,13 @@ resource "helm_release" "argocd" {
 ## Filebeat Helm Chart
 resource "helm_release" "filebeat" {
 
-  depends_on = [null_resource.kubeconfig]
-  name       = "filebeat"
-  repository = "https://helm.elastic.co"
-  chart      = "filebeat"
-  namespace  = "devops"
-  wait       = "true"
-  timeout    = 600
+  depends_on       = [null_resource.kubeconfig]
+  name             = "filebeat"
+  repository       = "https://helm.elastic.co"
+  chart            = "filebeat"
+  namespace        = "devops"
+  create_namespace = true
+  wait             = "false"
 
   values = [
     file("${path.module}/helm-values/filebeat.yml")
@@ -101,13 +101,13 @@ resource "helm_release" "filebeat" {
 ## Prometheus Stack Helm Chart
 resource "helm_release" "prometheus" {
 
-  depends_on = [null_resource.kubeconfig]
-  name       = "prom-stack"
-  repository = "https://prometheus-community.github.io/helm-charts"
-  chart      = "kube-prometheus-stack"
-  namespace  = "devops"
+  depends_on       = [null_resource.kubeconfig]
+  name             = "prom-stack"
+  repository       = "https://prometheus-community.github.io/helm-charts"
+  chart            = "kube-prometheus-stack"
+  namespace        = "devops"
   create_namespace = true
-  wait       = "false"
+  wait             = "false"
 
   values = [
     file("${path.module}/helm-values/prometheus.yml")

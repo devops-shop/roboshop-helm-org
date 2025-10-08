@@ -1,5 +1,5 @@
-env                        = "dev"
+env = "dev"
 
 rg_name = "ukwest-dev"
-name = "main-dev"
+name    = "main-dev"
 

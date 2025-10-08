@@ -89,8 +89,7 @@ resource "helm_release" "filebeat" {
   name       = "filebeat"
   repository = "https://helm.elastic.co"
   chart      = "filebeat"
-  namespace  = "devops"
-  create_namespace = true
+  namespace  = "kube-system"
   wait       = "false"
 
   values = [

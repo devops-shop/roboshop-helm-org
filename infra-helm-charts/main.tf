@@ -72,7 +72,7 @@ TF
 
 resource "helm_release" "argocd" {
   depends_on = [
-    null_resource.kubeconfig
+    null_resource.kubeconfig, kubernetes_namespace.devops
   ]
 
   name             = "argo-cd"

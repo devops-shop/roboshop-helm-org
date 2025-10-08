@@ -16,7 +16,6 @@ daemonset:
                 logs_path: "/var/log/containers/"
       output.logstash:
         hosts: 'elk-stack-int.mydevops.shop:5044'
-        ssl.enabled: false
 
 
 

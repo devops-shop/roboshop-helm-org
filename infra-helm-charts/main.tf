@@ -90,6 +90,7 @@ resource "helm_release" "filebeat" {
   repository       = "https://helm.elastic.co"
   chart            = "filebeat"
   namespace        = "devops"
+  create_namespace = true
   wait             = "false"
   values = [
     file("${path.module}/helm-values/filebeat.yml")

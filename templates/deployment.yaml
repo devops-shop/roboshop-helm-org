@@ -40,7 +40,7 @@ spec:
               app: {{ .Values.appName }}
       containers:
         - name: {{ .Values.appName }}
-          image: devopshop.azurecr.io/devopshop-{{ .Values.appName }}:{{ .Values.appTag }}
+          image: devopshop.azurecr.io/roboshop-{{ .Values.appName }}:{{ .Values.appTag }}
           ports:
             - containerPort: {{ .Values.containerPort }}
           envFrom:

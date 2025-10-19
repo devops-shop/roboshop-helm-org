@@ -6,7 +6,7 @@ metadata:
     app: {{ .Values.appName }}
     log_type: {{ .Values.log_type }}
 spec:
-  minReadySeconds: 10
+  minReadySeconds: 60
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -53,16 +53,25 @@ spec:
             limits:
               memory: {{ .Values.resources.limits.memory | quote }}
               cpu: {{ .Values.resources.limits.cpu | quote }}
-          probes:
-            liveness:
-              initialDelaySeconds: 10
-              periodSeconds: 10
-              failureThreshold: 3
-              successThreshold: 1
-              timeoutSeconds: 1
-            readiness:
-              initialDelaySeconds: 5
-              periodSeconds: 5
-              failureThreshold: 3
-              successThreshold: 1
-              timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.containerPort }}
+            failureThreshold: 1
+            periodSeconds: 10
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+              { { - if .Values.probes.liveness } }
+              httpGet:
+                path: { { .Values.probes.liveness.path | default "/health" } }
+                port: { { .Values.probes.liveness.port | default 8080 } }
+              initialDelaySeconds: { { .Values.probes.liveness.initialDelaySeconds | default 10 } }
+              periodSeconds: { { .Values.probes.liveness.periodSeconds | default 5 } }
+              { { - end } }
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.containerPort }}
+            failureThreshold: 1
+            periodSeconds: 10
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+

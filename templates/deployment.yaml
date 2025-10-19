@@ -52,7 +52,7 @@ spec:
             failureThreshold: {{ .Values.probes.liveness.failureThreshold | default 3 }}
           readinessProbe:
             httpGet:
-              path: {{ .Values.probes.readiness.path | default "/ready" }}
+              path: {{ .Values.probes.readiness.path | default "/health" }}
               port: {{ .Values.probes.readiness.port | default 8080 }}
             initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds | default 5 }}
             periodSeconds: {{ .Values.probes.readiness.periodSeconds | default 5 }}

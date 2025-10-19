@@ -4,14 +4,7 @@ metadata:
   name: {{ .Values.appName }}
   labels:
     app: {{ .Values.appName }}
-    log_type: {{ .Values.log_type }}
 spec:
-  minReadySeconds: 60
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 0
-      maxSurge: 1
   replicas: {{ .Values.minReplicas }}
   selector:
     matchLabels:
@@ -20,24 +13,7 @@ spec:
     metadata:
       labels:
         app: {{ .Values.appName }}
-        log_type: {{ .Values.log_type }}
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: project/name
-                    operator: In
-                    values:
-                      - roboshop
-      topologySpreadConstraints:
-        - topologyKey: kubernetes.io/hostname
-          maxSkew: 1
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app: {{ .Values.appName }}
       containers:
         - name: {{ .Values.appName }}
           image: devopshop.azurecr.io/roboshop-{{ .Values.appName }}:{{ .Values.appTag }}
@@ -53,19 +29,3 @@ spec:
             limits:
               memory: {{ .Values.resources.limits.memory | quote }}
               cpu: {{ .Values.resources.limits.cpu | quote }}
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.containerPort }}
-            failureThreshold: 1
-            periodSeconds: 10
-            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: {{ .Values.containerPort }}
-            failureThreshold: 1
-            periodSeconds: 10
-            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
-
-

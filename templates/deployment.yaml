@@ -43,20 +43,6 @@ spec:
           image: devopshop.azurecr.io/roboshop-{{ .Values.appName }}:{{ .Values.appTag }}
           ports:
             - containerPort: {{ .Values.containerPort }}
-          livenessProbe:
-            httpGet:
-              path: {{ .Values.probes.liveness.path | default "/health" }}
-              port: {{ .Values.probes.liveness.port | default 8080 }}
-            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds | default 10 }}
-            periodSeconds: {{ .Values.probes.liveness.periodSeconds | default 5 }}
-            failureThreshold: {{ .Values.probes.liveness.failureThreshold | default 3 }}
-          readinessProbe:
-            httpGet:
-              path: {{ .Values.probes.readiness.path | default "/health" }}
-              port: {{ .Values.probes.readiness.port | default 8080 }}
-            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds | default 5 }}
-            periodSeconds: {{ .Values.probes.readiness.periodSeconds | default 5 }}
-            failureThreshold: {{ .Values.probes.readiness.failureThreshold | default 3 }}
           envFrom:
             - secretRef:
                 name: {{ .Values.appName }}
@@ -67,9 +53,17 @@ spec:
             limits:
               memory: {{ .Values.resources.limits.memory | quote }}
               cpu: {{ .Values.resources.limits.cpu | quote }}
-
-
-
-
-
-
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.containerPort }}
+            failureThreshold: 1
+            periodSeconds: 10
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.containerPort }}
+            failureThreshold: 1
+            periodSeconds: 10
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}

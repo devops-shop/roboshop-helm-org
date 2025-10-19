@@ -56,12 +56,12 @@ spec:
       probes:
         liveness:
           path: /health
-          port: { { .Values.containerPort } }
+          port: {{ .Values.containerPort }}
           initialDelaySeconds: 10
           periodSeconds: 5
         readiness:
           path: /health
-          port: { { .Values.containerPort } }
+          port: {{ .Values.containerPort }}
           initialDelaySeconds: 5
           periodSeconds: 5
           livenessProbe:

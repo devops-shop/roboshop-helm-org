@@ -43,6 +43,7 @@ spec:
           image: devopshop.azurecr.io/roboshop-{{ .Values.appName }}:{{ .Values.appTag }}
           ports:
             - containerPort: {{ .Values.containerPort }}
+
           {{- if .Values.probes.liveness }}
           livenessProbe:
             httpGet:

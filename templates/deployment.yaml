@@ -71,13 +71,13 @@ spec:
             failureThreshold: 1
             periodSeconds: 10
             initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
-              { { - if .Values.probes.liveness } }
+              {{ - if .Values.probes.liveness }}
               httpGet:
-                path: { { .Values.probes.liveness.path | default "/health" } }
-                port: { { .Values.probes.liveness.port | default 8080 } }
-              initialDelaySeconds: { { .Values.probes.liveness.initialDelaySeconds | default 10 } }
-              periodSeconds: { { .Values.probes.liveness.periodSeconds | default 5 } }
-              { { - end } }
+                path: {{ .Values.probes.liveness.path | default "/health" }}
+                port: {{ .Values.probes.liveness.port | default 8080 }}
+              initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds | default 10 }}
+              periodSeconds: {{ .Values.probes.liveness.periodSeconds | default 5 }}
+              {{ - end }}
           readinessProbe:
             httpGet:
               path: /health
@@ -85,11 +85,11 @@ spec:
             failureThreshold: 1
             periodSeconds: 10
             initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
-              { { - if .Values.probes.readiness } }
+              {{ - if .Values.probes.readiness }}
               httpGet:
-                path: { { .Values.probes.readiness.path | default "/health" } }
-                port: { { .Values.probes.readiness.port | default 8080 } }
-              initialDelaySeconds: { { .Values.probes.readiness.initialDelaySeconds | default 5 } }
-              periodSeconds: { { .Values.probes.readiness.periodSeconds | default 5 } }
-              { { - end } }
+                path: {{ .Values.probes.readiness.path | default "/health" }}
+                port: {{ .Values.probes.readiness.port | default 8080 }}
+              initialDelaySeconds: { { .Values.probes.readiness.initialDelaySeconds | default 5 }}
+              periodSeconds: {{ .Values.probes.readiness.periodSeconds | default 5 }}
+              {{ - end }}
 

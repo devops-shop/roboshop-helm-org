@@ -59,11 +59,11 @@ spec:
               port: {{ .Values.containerPort }}
             failureThreshold: 1
             periodSeconds: 10
-            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            initialDelaySeconds: 5
           readinessProbe:
             httpGet:
               path: /health
               port: {{ .Values.containerPort }}
             failureThreshold: 1
             periodSeconds: 10
-            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            initialDelaySeconds: 5

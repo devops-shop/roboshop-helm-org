@@ -43,6 +43,20 @@ spec:
           image: devopshop.azurecr.io/roboshop-{{ .Values.appName }}:{{ .Values.appTag }}
           ports:
             - containerPort: {{ .Values.containerPort }}
+          livenessProbe:
+            httpGet:
+              path: { { .Values.probes.liveness.path | default "/health" } }
+              port: { { .Values.probes.liveness.port | default 8080 } }
+            initialDelaySeconds: { { .Values.probes.liveness.initialDelaySeconds | default 10 } }
+            periodSeconds: { { .Values.probes.liveness.periodSeconds | default 5 } }
+            failureThreshold: { { .Values.probes.liveness.failureThreshold | default 3 } }
+            readinessProbe:
+              httpGet:
+                path: { { .Values.probes.readiness.path | default "/health" } }
+                port: { { .Values.probes.readiness.port | default 8080 } }
+              initialDelaySeconds: { { .Values.probes.readiness.initialDelaySeconds | default 5 } }
+              periodSeconds: { { .Values.probes.readiness.periodSeconds | default 5 } }
+              failureThreshold: { { .Values.probes.readiness.failureThreshold | default 3 } }
           envFrom:
             - secretRef:
                 name: {{ .Values.appName }}
@@ -54,27 +68,6 @@ spec:
               memory: {{ .Values.resources.limits.memory | quote }}
               cpu: {{ .Values.resources.limits.cpu | quote }}
 
-          # Liveness Probe
-          livenessProbe:
-            {{- if .Values.probes.liveness }}
-            httpGet:
-              path: { { .Values.probes.liveness.path | default "/health" } }
-              port: { { .Values.probes.liveness.port | default 8080 } }
-            initialDelaySeconds: { { .Values.probes.liveness.initialDelaySeconds | default 10 } }
-            periodSeconds: { { .Values.probes.liveness.periodSeconds | default 5 } }
-            failureThreshold: { { .Values.probes.liveness.failureThreshold | default 3 } }
-            {{- end }}
-
-          # Readiness Probe
-          readinessProbe:
-            {{- if .Values.probes.readiness }}
-            httpGet:
-              path: { { .Values.probes.readiness.path | default "/health" } }
-              port: { { .Values.probes.readiness.port | default 8080 } }
-            initialDelaySeconds: { { .Values.probes.readiness.initialDelaySeconds | default 5 } }
-            periodSeconds: { { .Values.probes.readiness.periodSeconds | default 5 } }
-            failureThreshold: { { .Values.probes.readiness.failureThreshold | default 3 } }
-            { { - end } }
 
 
 

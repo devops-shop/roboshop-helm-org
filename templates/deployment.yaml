@@ -50,20 +50,20 @@ spec:
           livenessProbe:
             httpGet:
               path: /health
-              port: {{ .Values.containerPort }}
+              port: {{ .containerPort }}
             failureThreshold: 1
-            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
-            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            initialDelaySeconds: {{ .initialDelaySeconds }}
+            periodSeconds: {{ .periodSeconds }}
+            timeoutSeconds: {{ .timeoutSeconds }}
           {{- end }}
 
           {{- with .Values.probes.readiness }}
           readinessProbe:
             httpGet:
               path: /health
-              port: {{ .Values.containerPort }}
+              port: {{ .containerPort }}
             failureThreshold: 1
-            initialDelaySeconds: { { .Values.probes.liveness.initialDelaySeconds } }
-            periodSeconds: { { .Values.probes.liveness.periodSeconds } }
-            timeoutSeconds: { { .Values.probes.liveness.timeoutSeconds } }
+            initialDelaySeconds: {{ .initialDelaySeconds }}
+            periodSeconds: {{ .periodSeconds }}
+            timeoutSeconds: {{ .timeoutSeconds }}
           {{- end }}

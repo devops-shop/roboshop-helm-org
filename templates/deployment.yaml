@@ -14,22 +14,6 @@ spec:
       labels:
         app: {{ .Values.appName }}
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: project/name
-                    operator: In
-                    values:
-                      - roboshop
-      topologySpreadConstraints:
-        - topologyKey: kubernetes.io/hostname
-          maxSkew: 1
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app: {{ .Values.appName }}
       containers:
         - name: {{ .Values.appName }}
           image: devopshop.azurecr.io/roboshop-{{ .Values.appName }}:{{ .Values.appTag }}
@@ -45,25 +29,3 @@ spec:
             limits:
               memory: {{ .Values.resources.limits.memory | quote }}
               cpu: {{ .Values.resources.limits.cpu | quote }}
-
-          {{- with .Values.probes.liveness }}
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: {{ .containerPort }}
-            failureThreshold: 1
-            initialDelaySeconds: {{ .initialDelaySeconds }}
-            periodSeconds: {{ .periodSeconds }}
-            timeoutSeconds: {{ .timeoutSeconds }}
-          {{- end }}
-
-          {{- with .Values.probes.readiness }}
-          readinessProbe:
-            httpGet:
-              path: /ready
-              port: {{ .containerPort }}
-            failureThreshold: 1
-            initialDelaySeconds: {{ .initialDelaySeconds }}
-            periodSeconds: {{ .periodSeconds }}
-            timeoutSeconds: {{ .timeoutSeconds }}
-          {{- end }}

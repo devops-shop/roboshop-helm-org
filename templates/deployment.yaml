@@ -45,6 +45,8 @@ spec:
             limits:
               memory: {{ .Values.resources.limits.memory | quote }}
               cpu: {{ .Values.resources.limits.cpu | quote }}
+
+          {{- with .Values.probes.liveness }}
           livenessProbe:
             httpGet:
               path: /health
@@ -53,6 +55,9 @@ spec:
             initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
             periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
             timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+          {{- end }}
+
+          {{- with .Values.probes.readiness }}
           readinessProbe:
             httpGet:
               path: /health
@@ -61,3 +66,4 @@ spec:
             initialDelaySeconds: { { .Values.probes.liveness.initialDelaySeconds } }
             periodSeconds: { { .Values.probes.liveness.periodSeconds } }
             timeoutSeconds: { { .Values.probes.liveness.timeoutSeconds } }
+          {{- end }}

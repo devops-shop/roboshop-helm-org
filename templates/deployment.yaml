@@ -50,12 +50,14 @@ spec:
               path: /health
               port: {{ .Values.containerPort }}
             failureThreshold: 1
-            periodSeconds: 10
             initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
           readinessProbe:
             httpGet:
               path: /health
               port: {{ .Values.containerPort }}
             failureThreshold: 1
-            periodSeconds: 10
-            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            initialDelaySeconds: { { .Values.probes.liveness.initialDelaySeconds } }
+            periodSeconds: { { .Values.probes.liveness.periodSeconds } }
+            timeoutSeconds: { { .Values.probes.liveness.timeoutSeconds } }

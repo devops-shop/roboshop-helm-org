@@ -64,6 +64,17 @@ TF
   }
 }
 
+# Direct Helm Chart is a Problem - https://github.com/kubernetes/ingress-nginx/issues/10863
+
+resource "null_resource" "nginx-ingress" {
+  depends_on = [null_resource.kubeconfig]
+  provisioner "local-exec" {
+    command = <<EOF
+ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
+EOF
+  }
+}
+
 resource "helm_release" "argocd" {
   depends_on = [
     null_resource.kubeconfig,
@@ -129,13 +140,42 @@ resource "helm_release" "prometheus" {
   ]
 }
 
-# Direct Helm Chart is a Problem - https://github.com/kubernetes/ingress-nginx/issues/10863
 
-resource "null_resource" "nginx-ingress" {
-  depends_on = [null_resource.kubeconfig]
+## External DNS Helm chart
+resource "null_resource" "external-dns-secret" {
+  depends_on = [
+    null_resource.kubeconfig,
+    null_resource.nginx-ingress
+  ]
+
+  triggers = {
+    always = timestamp()
+  }
+
   provisioner "local-exec" {
     command = <<EOF
- kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
+echo '{
+  "tenantId": "'"$AZURE_GUID"'",
+  "subscriptionId": "'"$AZURE_GUID"'",
+  "resourceGroup": "MyDnsResourceGroup",
+  "aadClientId": "'"$AZURE_GUID"'",
+  "aadClientSecret": "uKiuXeiwui4jo9quae9o"
+}' >/tmp/azure.json
 EOF
   }
+
 }
+
+# resource "helm_release" "external-dns" {
+#
+#   depends_on = [
+#     null_resource.kubeconfig,
+#     null_resource.nginx-ingress
+#   ]
+#   name       = "external-dns"
+#   repository = "https://kubernetes-sigs.github.io/external-dns/"
+#   chart      = "external-dns"
+#   namespace  = "devops"
+#   wait       = "false"
+#   create_namespace = true
+# }

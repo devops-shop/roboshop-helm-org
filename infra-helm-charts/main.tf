@@ -231,18 +231,3 @@ kubectl apply -f ${path.module}/issuer.yml
 EOT
   }
 }
-
-# variable "namespaces" {
-#   type    = list(string)
-#   default = ["devops", "argocd"]
-# }
-#
-# resource "null_resource" "cleanup_namespaces" {
-#   provisioner "local-exec" {
-#     when    = destroy
-#     command = join("\n", [
-#       for ns in var.namespaces :
-#       "kubectl delete namespace ${ns} --ignore-not-found"
-#     ])
-#   }
-# }

@@ -157,26 +157,31 @@ resource "null_resource" "external-dns-secret" {
 echo '{
   "tenantId": "'"${data.vault_generic_secret.azure-sp.data["ARM_TENANT_ID"]}"'",
   "subscriptionId": "'"${data.vault_generic_secret.azure-sp.data["ARM_SUBSCRIPTION_ID"]}"'",
-  "resourceGroup": "MyDnsResourceGroup",
+  "resourceGroup": "project-setup-1",
   "aadClientId": "'"${data.vault_generic_secret.azure-sp.data["ARM_CLIENT_ID"]}"'",
   "aadClientSecret": "'"${data.vault_generic_secret.azure-sp.data["ARM_CLIENT_SECRET"]}"'"
-}' >${path.module}/azure.json
+}' >/tmp/azure.json
+kubectl create secret generic azure-config-file --namespace "devops" --from-file /tmp/azure.json
 EOF
   }
 
 }
 
 
-# resource "helm_release" "external-dns" {
-#
-#   depends_on = [
-#     null_resource.kubeconfig,
-#     null_resource.nginx-ingress
-#   ]
-#   name       = "external-dns"
-#   repository = "https://kubernetes-sigs.github.io/external-dns/"
-#   chart      = "external-dns"
-#   namespace  = "devops"
-#   wait       = "false"
-#   create_namespace = true
-# }
+resource "helm_release" "external-dns" {
+
+  depends_on = [
+    null_resource.kubeconfig,
+    null_resource.nginx-ingress,
+    null_resource.external-dns-secret
+  ]
+  name       = "external-dns"
+  repository = "https://kubernetes-sigs.github.io/external-dns/"
+  chart      = "external-dns"
+  namespace  = "devops"
+  wait       = "false"
+  create_namespace = true
+  values = [
+    file("${path.module}/helm-values/external-dns.yml")
+  ]
+}

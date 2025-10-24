@@ -66,7 +66,8 @@ TF
 
 resource "helm_release" "argocd" {
   depends_on = [
-    null_resource.kubeconfig
+    null_resource.kubeconfig,
+    null_resource.nginx-ingress
   ]
 
   name             = "argo-cd"
@@ -88,18 +89,21 @@ resource "helm_release" "argocd" {
 ## Filebeat Helm Chart
 resource "helm_release" "filebeat" {
 
-  depends_on       = [null_resource.kubeconfig]
-  name             = "filebeat"
-  repository       = "https://helm.elastic.co"
-  chart            = "filebeat"
-  namespace        = "devops"
+  depends_on = [
+    null_resource.kubeconfig,
+    null_resource.nginx-ingress
+  ]
+  name       = "filebeat"
+  repository = "https://helm.elastic.co"
+  chart      = "filebeat"
+  namespace  = "devops"
+  wait       = "false"
   create_namespace = true
-  wait             = "false"
+
   values = [
     file("${path.module}/helm-values/filebeat.yml")
   ]
 }
-
 ## Prometheus Stack Helm Chart
 resource "helm_release" "prometheus" {
 

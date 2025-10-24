@@ -25,3 +25,12 @@ resources:
     memory: "3000Mi"
     cpu: "1200m"
 
+probes:
+  liveness:
+    initialDelaySeconds: 60
+  readiness:
+    initialDelaySeconds: 60
+
+minReplicas: 3
+
+log_type: raw

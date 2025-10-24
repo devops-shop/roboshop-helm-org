@@ -186,3 +186,48 @@ resource "helm_release" "external-dns" {
     file("${path.module}/helm-values/external-dns.yml")
   ]
 }
+
+resource "helm_release" "cert-manager" {
+
+  depends_on = [
+    null_resource.kubeconfig,
+    null_resource.nginx-ingress
+  ]
+  name       = "cert-manager"
+  repository = "https://charts.jetstack.io"
+  chart      = "cert-manager"
+  namespace  = "devops"
+  wait       = "false"
+  create_namespace = true
+  set = [
+    {
+      name  = "crds.enabled"
+      value = "true"
+    }
+  ]
+}
+
+resource "null_resource" "cert-manager" {
+  depends_on = [null_resource.kubeconfig, helm_release.cert-manager]
+  provisioner "local-exec" {
+    command = <<EOT
+cat <<-EOF > ${path.module}/issuer.yml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+spec:
+  acme:
+    email: test@yopmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
+EOF
+kubectl apply -f ${path.module}/issuer.yml
+EOT
+  }
+}

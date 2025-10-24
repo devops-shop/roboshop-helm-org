@@ -30,4 +30,4 @@ probes:
 
 ingress:
   enabled: true
-  host: frontend-dev.rdevopsb84.online
+  host: frontend-dev.devops.shop

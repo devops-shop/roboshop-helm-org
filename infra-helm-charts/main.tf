@@ -145,7 +145,8 @@ resource "helm_release" "prometheus" {
 resource "null_resource" "external-dns-secret" {
   depends_on = [
     null_resource.kubeconfig,
-    null_resource.nginx-ingress
+    null_resource.nginx-ingress,
+    helm_release.prometheus
   ]
 
   triggers = {

@@ -1,0 +1,10 @@
+server:
+  ingress:
+    enabled: true
+    ingressClassName: "nginx"
+    hostname: "argocd-dev.mydevops.shop"
+
+configs:
+  params:
+    server.insecure: true
+

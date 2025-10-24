@@ -232,19 +232,17 @@ EOT
   }
 }
 
-variable "namespaces" {
-  type    = list(string)
-  default = ["devops", "argocd"]
-}
-
-resource "null_resource" "cleanup_namespaces" {
-  depends_on = [null_resource.kubeconfig, null_resource.nginx-ingress, helm_release.cert-manager, helm_release.prometheus,
-    helm_release.argocd, helm_release.external-dns, helm_release.external-secrets, helm_release.filebeat]
-  provisioner "local-exec" {
-    when    = destroy
-    command = join("\n", [
-      for ns in var.namespaces :
-      "kubectl delete namespace ${ns} --ignore-not-found"
-    ])
-  }
-}
+# variable "namespaces" {
+#   type    = list(string)
+#   default = ["devops", "argocd"]
+# }
+#
+# resource "null_resource" "cleanup_namespaces" {
+#   provisioner "local-exec" {
+#     when    = destroy
+#     command = join("\n", [
+#       for ns in var.namespaces :
+#       "kubectl delete namespace ${ns} --ignore-not-found"
+#     ])
+#   }
+# }

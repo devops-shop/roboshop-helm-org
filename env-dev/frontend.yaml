@@ -27,6 +27,8 @@ probes:
   readiness:
     initialDelaySeconds: 30
 
+log_type: raw
+
 ingress:
   enabled: true
   host: frontend-dev.devops.shop

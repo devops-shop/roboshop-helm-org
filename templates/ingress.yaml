@@ -5,15 +5,19 @@ metadata:
   name: {{ .Values.appName }}
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: {{ .Values.appName }}-{{ .Values.env }}-tls
   rules:
-    - host: {{ .Values.ingress.host }}
-      http:
-        paths:
-          - pathType: Prefix
-            backend:
-              service:
-                name: {{ .Values.appName }}
-                port:
-                  number: {{ .Values.containerPort }}
-            path: /
+      - host: {{ .Values.ingress.host }}
+        http:
+          paths:
+            - pathType: Prefix
+              backend:
+                service:
+                  name: {{ .Values.appName }}
+                  port:
+                    number: {{ .Values.containerPort }}
+              path: /
   {{ end }}

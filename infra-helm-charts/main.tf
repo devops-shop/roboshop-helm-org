@@ -17,13 +17,24 @@ resource "null_resource" "nginx-ingress" {
   depends_on = [null_resource.kubeconfig]
   provisioner "local-exec" {
     command = <<EOF
- kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
+for i in {1..10}; do
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml && break
+  echo "Retrying nginx ingress apply in 10s..."
+  sleep 10
+done
+
+# Optional: wait until the controller pods are running
+kubectl rollout status deployment/ingress-nginx-controller -n ingress-nginx --timeout=180s || true
 EOF
   }
 }
 
+
 resource "helm_release" "external-secrets" {
-  depends_on = [null_resource.kubeconfig]
+  depends_on = [
+    null_resource.kubeconfig
+  ]
+
   name             = "external-secrets"
   repository       = "https://charts.external-secrets.io"
   chart            = "external-secrets"
@@ -37,49 +48,90 @@ resource "helm_release" "external-secrets" {
   ]
 }
 
-provider "kubernetes" {
-  config_path = "~/.kube/config"
-}
-
-resource "kubernetes_secret" "vault_token" {
-  metadata {
-    name      = "vault-token"
-    namespace = "devops"
-  }
-  data = {
-    token = base64encode(var.token)
-  }
-}
-
-resource "kubernetes_manifest" "cluster_secret_store" {
-  manifest = {
-    apiVersion = "external-secrets.io/v1"
-    kind       = "ClusterSecretStore"
-    metadata = {
-      name = "roboshop-${var.env}"
-    }
-    spec = {
-      provider = {
-        vault = {
-          server  = "http://vault-int.mydevops.shop:8200"
-          path    = "roboshop-${var.env}"
-          version = "v2"
-          auth = {
-            tokenSecretRef = {
-              name      = "vault-token"
-              key       = "token"
-              namespace = "devops"
-            }
-          }
-        }
-      }
-    }
-  }
-
+resource "null_resource" "external-secrets-secret-store" {
   depends_on = [
-    helm_release.external-secrets,
-    kubernetes_secret.vault_token
+    helm_release.external-secrets
   ]
+  provisioner "local-exec" {
+    command = <<TF
+kubectl apply -f - <<KUBE
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: roboshop-${var.env}
+spec:
+  provider:
+    vault:
+      server: "http://vault-int.mydevops.shop:8200"
+      path: "roboshop-${var.env}"
+      version: "v2"
+      auth:
+        tokenSecretRef:
+          name: "vault-token"
+          key: "token"
+          namespace: devops
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-token
+  namespace: devops
+data:
+  token: ${base64encode(var.token)}
+KUBE
+TF
+  }
+
+  provisioner "local-exec" {
+    command = <<TF
+for i in {1..10}; do
+  kubectl apply -f - <<KUBE
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-token
+  namespace: devops
+data:
+  token: ${base64encode(var.token)}
+KUBE
+  status=$?
+  if [ $status -eq 0 ]; then
+    echo "Secret applied successfully."
+    break
+  fi
+  echo "Retrying in 5s..."
+  sleep 5
+done
+
+# Now apply the ClusterSecretStore
+for i in {1..10}; do
+  kubectl apply -f - <<KUBE
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: roboshop-${var.env}
+spec:
+  provider:
+    vault:
+      server: "http://vault-int.mydevops.shop:8200"
+      path: "roboshop-${var.env}"
+      version: "v2"
+      auth:
+        tokenSecretRef:
+          name: "vault-token"
+          key: "token"
+          namespace: devops
+KUBE
+  status=$?
+  if [ $status -eq 0 ]; then
+    echo "ClusterSecretStore applied successfully."
+    break
+  fi
+  echo "Retrying in 5s..."
+  sleep 5
+done
+TF
+  }
 }
 
 
@@ -87,6 +139,7 @@ resource "kubernetes_manifest" "cluster_secret_store" {
 
 resource "helm_release" "argocd" {
   depends_on = [null_resource.kubeconfig, null_resource.nginx-ingress]
+
   name             = "argo-cd"
   repository       = "https://argoproj.github.io/argo-helm"
   chart            = "argo-cd"

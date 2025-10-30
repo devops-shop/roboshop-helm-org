@@ -23,10 +23,7 @@ EOF
 }
 
 resource "helm_release" "external-secrets" {
-  depends_on = [
-    null_resource.kubeconfig
-  ]
-
+  depends_on = [null_resource.kubeconfig]
   name             = "external-secrets"
   repository       = "https://charts.external-secrets.io"
   chart            = "external-secrets"
@@ -41,9 +38,7 @@ resource "helm_release" "external-secrets" {
 }
 
 resource "null_resource" "external-secrets-secret-store" {
-  depends_on = [
-    helm_release.external-secrets
-  ]
+  depends_on = [helm_release.external-secrets]
   provisioner "local-exec" {
     command = <<TF
 kubectl apply -f - <<KUBE
@@ -78,10 +73,7 @@ TF
 
 
 resource "helm_release" "argocd" {
-  depends_on = [
-    null_resource.kubeconfig,
-    null_resource.nginx-ingress
-  ]
+  depends_on = [null_resource.kubeconfig, null_resource.nginx-ingress]
 
   name             = "argo-cd"
   repository       = "https://argoproj.github.io/argo-helm"
@@ -102,10 +94,7 @@ resource "helm_release" "argocd" {
 ## Filebeat Helm Chart
 resource "helm_release" "filebeat" {
 
-  depends_on = [
-    null_resource.kubeconfig,
-    null_resource.nginx-ingress
-  ]
+  depends_on = [null_resource.kubeconfig, null_resource.nginx-ingress]
   name       = "filebeat"
   repository = "https://helm.elastic.co"
   chart      = "filebeat"
@@ -120,10 +109,7 @@ resource "helm_release" "filebeat" {
 ## Prometheus Stack Helm Chart
 resource "helm_release" "prometheus" {
 
-  depends_on       = [
-    null_resource.kubeconfig,
-    null_resource.nginx-ingress
-  ]
+  depends_on       = [null_resource.kubeconfig, null_resource.nginx-ingress]
   name             = "prom-stack"
   repository       = "https://prometheus-community.github.io/helm-charts"
   chart            = "kube-prometheus-stack"
@@ -145,11 +131,7 @@ resource "helm_release" "prometheus" {
 
 ## External DNS Helm chart
 resource "null_resource" "external-dns-secret" {
-  depends_on = [
-    null_resource.kubeconfig,
-    null_resource.nginx-ingress,
-    helm_release.prometheus
-  ]
+  depends_on = [null_resource.kubeconfig, null_resource.nginx-ingress, helm_release.prometheus]
 
   triggers = {
     always = timestamp()
@@ -173,11 +155,7 @@ EOF
 
 resource "helm_release" "external-dns" {
 
-  depends_on = [
-    null_resource.kubeconfig,
-    null_resource.nginx-ingress,
-    null_resource.external-dns-secret
-  ]
+  depends_on = [null_resource.kubeconfig, null_resource.nginx-ingress, null_resource.external-dns-secret]
   name       = "external-dns"
   repository = "https://kubernetes-sigs.github.io/external-dns/"
   chart      = "external-dns"
@@ -191,10 +169,7 @@ resource "helm_release" "external-dns" {
 
 resource "helm_release" "cert-manager" {
 
-  depends_on = [
-    null_resource.kubeconfig,
-    null_resource.nginx-ingress
-  ]
+  depends_on = [null_resource.kubeconfig, null_resource.nginx-ingress]
   name       = "cert-manager"
   repository = "https://charts.jetstack.io"
   chart      = "cert-manager"

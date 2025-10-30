@@ -37,38 +37,51 @@ resource "helm_release" "external-secrets" {
   ]
 }
 
-resource "null_resource" "external-secrets-secret-store" {
-  depends_on = [helm_release.external-secrets]
-  provisioner "local-exec" {
-    command = <<TF
-kubectl apply -f - <<KUBE
-apiVersion: external-secrets.io/v1
-kind: ClusterSecretStore
-metadata:
-  name: roboshop-${var.env}
-spec:
-  provider:
-    vault:
-      server: "http://vault-int.mydevops.shop:8200"
-      path: "roboshop-${var.env}"
-      version: "v2"
-      auth:
-        tokenSecretRef:
-          name: "vault-token"
-          key: "token"
-          namespace: devops
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: vault-token
-  namespace: devops
-data:
-  token: ${base64encode(var.token)}
-KUBE
-TF
+provider "kubernetes" {
+  config_path = "~/.kube/config"
+}
+
+resource "kubernetes_secret" "vault_token" {
+  metadata {
+    name      = "vault-token"
+    namespace = "devops"
+  }
+  data = {
+    token = base64encode(var.token)
   }
 }
+
+resource "kubernetes_manifest" "cluster_secret_store" {
+  manifest = {
+    apiVersion = "external-secrets.io/v1"
+    kind       = "ClusterSecretStore"
+    metadata = {
+      name = "roboshop-${var.env}"
+    }
+    spec = {
+      provider = {
+        vault = {
+          server  = "http://vault-int.mydevops.shop:8200"
+          path    = "roboshop-${var.env}"
+          version = "v2"
+          auth = {
+            tokenSecretRef = {
+              name      = "vault-token"
+              key       = "token"
+              namespace = "devops"
+            }
+          }
+        }
+      }
+    }
+  }
+
+  depends_on = [
+    helm_release.external-secrets,
+    kubernetes_secret.vault_token
+  ]
+}
+
 
 
 

@@ -11,17 +11,6 @@ EOF
   }
 }
 
-# Direct Helm Chart is a Problem - https://github.com/kubernetes/ingress-nginx/issues/10863
-
-resource "null_resource" "nginx-ingress" {
-  depends_on = [null_resource.kubeconfig]
-  provisioner "local-exec" {
-    command = <<EOF
- kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
-EOF
-  }
-}
-
 resource "helm_release" "external-secrets" {
   depends_on = [
     null_resource.kubeconfig
@@ -54,7 +43,7 @@ metadata:
 spec:
   provider:
     vault:
-      server: "http://vault-int.mydevops.shop:8200"
+      server: "http://vault-int.rdevopsb84.online:8200"
       path: "roboshop-${var.env}"
       version: "v2"
       auth:
@@ -75,9 +64,23 @@ TF
   }
 }
 
+# Direct Helm Chart is a Problem - https://github.com/kubernetes/ingress-nginx/issues/10863
+
+resource "null_resource" "nginx-ingress" {
+  depends_on = [null_resource.kubeconfig]
+  provisioner "local-exec" {
+    command = <<EOF
+ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
+EOF
+  }
+}
+
 
 resource "helm_release" "argocd" {
-  depends_on = [null_resource.kubeconfig, null_resource.nginx-ingress]
+  depends_on = [
+    null_resource.kubeconfig,
+    null_resource.nginx-ingress
+  ]
 
   name             = "argo-cd"
   repository       = "https://argoproj.github.io/argo-helm"
@@ -87,7 +90,7 @@ resource "helm_release" "argocd" {
   set = [
     {
       name  = "server.ingress.hostname"
-      value = "argocd-${var.env}.mydevops.shop"
+      value = "argocd-${var.env}.rdevopsb84.online"
     }
   ]
   values = [
@@ -98,7 +101,10 @@ resource "helm_release" "argocd" {
 ## Filebeat Helm Chart
 resource "helm_release" "filebeat" {
 
-  depends_on = [null_resource.kubeconfig, null_resource.nginx-ingress]
+  depends_on = [
+    null_resource.kubeconfig,
+    null_resource.nginx-ingress
+  ]
   name       = "filebeat"
   repository = "https://helm.elastic.co"
   chart      = "filebeat"
@@ -110,16 +116,20 @@ resource "helm_release" "filebeat" {
     file("${path.module}/helm-values/filebeat.yml")
   ]
 }
+
 ## Prometheus Stack Helm Chart
 resource "helm_release" "prometheus" {
 
-  depends_on       = [null_resource.kubeconfig, null_resource.nginx-ingress]
-  name             = "prom-stack"
-  repository       = "https://prometheus-community.github.io/helm-charts"
-  chart            = "kube-prometheus-stack"
-  namespace        = "devops"
+  depends_on = [
+    null_resource.kubeconfig,
+    null_resource.nginx-ingress
+  ]
+  name       = "prom-stack"
+  repository = "https://prometheus-community.github.io/helm-charts"
+  chart      = "kube-prometheus-stack"
+  namespace  = "devops"
+  wait       = "false"
   create_namespace = true
-  wait             = "false"
 
   values = [
     file("${path.module}/helm-values/prometheus.yml")
@@ -127,39 +137,40 @@ resource "helm_release" "prometheus" {
   set_list = [
     {
       name  = "prometheus.ingress.hosts"
-      value = ["prometheus-${var.env}.mydevops.shop"]
+      value = ["prometheus-${var.env}.rdevopsb84.online"]
     }
   ]
 }
 
-
 ## External DNS Helm chart
 resource "null_resource" "external-dns-secret" {
-  depends_on = [null_resource.kubeconfig, null_resource.nginx-ingress, helm_release.prometheus]
-
-  triggers = {
-    always = timestamp()
-  }
+  depends_on = [
+    null_resource.kubeconfig,
+    null_resource.nginx-ingress
+  ]
 
   provisioner "local-exec" {
     command = <<EOF
 echo '{
   "tenantId": "'"${data.vault_generic_secret.azure-sp.data["ARM_TENANT_ID"]}"'",
   "subscriptionId": "'"${data.vault_generic_secret.azure-sp.data["ARM_SUBSCRIPTION_ID"]}"'",
-  "resourceGroup": "my-first-rg",
+  "resourceGroup": "project-setup-1",
   "aadClientId": "'"${data.vault_generic_secret.azure-sp.data["ARM_CLIENT_ID"]}"'",
   "aadClientSecret": "'"${data.vault_generic_secret.azure-sp.data["ARM_CLIENT_SECRET"]}"'"
 }' >/tmp/azure.json
-kubectl create secret generic azure-config-file --namespace "devops" --from-file /tmp/azure.json
+kubectl create secret generic azure-config-file --namespace devops --from-file /tmp/azure.json
 EOF
   }
 
 }
 
-
 resource "helm_release" "external-dns" {
 
-  depends_on = [null_resource.kubeconfig, null_resource.nginx-ingress, null_resource.external-dns-secret]
+  depends_on = [
+    null_resource.kubeconfig,
+    null_resource.nginx-ingress,
+    null_resource.external-dns-secret
+  ]
   name       = "external-dns"
   repository = "https://kubernetes-sigs.github.io/external-dns/"
   chart      = "external-dns"
@@ -171,9 +182,11 @@ resource "helm_release" "external-dns" {
   ]
 }
 
+
 resource "helm_release" "cert-manager" {
 
-  depends_on = [null_resource.kubeconfig,
+  depends_on = [
+    null_resource.kubeconfig,
     null_resource.nginx-ingress
   ]
   name       = "cert-manager"

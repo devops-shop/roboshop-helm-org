@@ -276,7 +276,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: kiali-dev.rdevopsb84.online
+  - host: kiali-dev.mydevops.shop
     http:
       paths:
       - backend:

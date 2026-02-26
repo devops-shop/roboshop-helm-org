@@ -32,3 +32,8 @@ log_type: raw
 ingress:
   enabled: true
   host: frontend-dev.mydevops.shop
+
+istio:
+  principals: ["cluster.local/ns/ingress-nginx/sa/ingress-nginx"]
+  auth_policy:
+    enabled: false

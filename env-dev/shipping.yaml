@@ -34,3 +34,6 @@ probes:
 minReplicas: 3
 
 log_type: raw
+
+istio:
+  principals: ["cluster.local/ns/app/sa/frontend"]

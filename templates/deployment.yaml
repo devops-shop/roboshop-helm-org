@@ -25,11 +25,16 @@ spec:
       volumes:
         - name: tmp
           emptyDir: {}
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 3000
-        fsGroup: 2000
-        supplementalGroups: [ 4000 ]
+#      securityContext:
+#        runAsUser: 1000
+#        runAsGroup: 3000
+#        fsGroup: 2000
+#        supplementalGroups: [ 4000 ]
+#      securityContext:
+#        runAsUser: 1001
+#        runAsGroup: 1001
+#        fsGroup: 1001
+#        supplementalGroups: [1001]
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -76,9 +81,9 @@ spec:
             failureThreshold: 1
             periodSeconds: 10
             initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
-          securityContext:
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
+#          securityContext:
+#            readOnlyRootFilesystem: true
+#            allowPrivilegeEscalation: false
           volumeMounts:
             - name: tmp
               mountPath: /tmp
